@@ -1,0 +1,131 @@
+plugins {
+	id 'java'
+	id "com.diffplug.spotless" version "5.14.2"
+	id 'maven-publish'
+	id 'signing'
+	id 'antlr'
+}
+
+group 'com.bradyrussell'
+version '1.0-SNAPSHOT'
+
+repositories {
+	mavenCentral()
+
+/*	maven {
+		url "https://repo.bradyrussell.com/repository/bradyrussell-release/"
+	}
+
+	maven {
+		url "https://repo.bradyrussell.com/repository/bradyrussell-snapshot/"
+	}*/
+}
+/*
+publishing {
+	publications {
+		TSQLParser(MavenPublication) {
+			from components.java
+		}
+	}
+
+	repositories {
+		maven {
+			url = version.endsWith('SNAPSHOT') ? "https://repo.bradyrussell.com/repository/bradyrussell-snapshot/" : "https://repo.bradyrussell.com/repository/bradyrussell-release/"
+			credentials {
+				username = repoUsername
+				password = repoPassword
+			}
+		}
+	}
+}*/
+
+sourceSets.main.java.srcDirs = ['src']
+sourceSets.test.java.srcDirs = ['test']
+
+java {
+	withJavadocJar()
+	withSourcesJar()
+
+	toolchain {
+		languageVersion.set(JavaLanguageVersion.of(14))
+	}
+}
+
+dependencies {
+	implementation 'org.jetbrains:annotations:22.0.0'
+	// https://mvnrepository.com/artifact/org.antlr/antlr4-runtime
+	implementation group: 'org.antlr', name: 'antlr4-runtime', version: '4.9.2'
+	// https://mvnrepository.com/artifact/org.antlr/antlr4
+	antlr group: 'org.antlr', name: 'antlr4', version: '4.9.2'
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
+	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
+}
+
+generateGrammarSource {
+	maxHeapSize = "1G"
+	arguments += ["-visitor", "-long-messages"]
+}
+
+jar {
+	manifest {
+		attributes  'Automatic-Module-Name': 'com.bradyrussell.tsqlparser'
+	}
+}
+
+test {
+	useJUnitPlatform()
+	maxHeapSize = '1G'
+}
+
+task copyDependencies(type: Copy) {
+	from configurations.runtimeClasspath
+	into 'dependencies'
+}
+
+task copyJar(type: Copy) {
+	dependsOn("jar", "javadocJar", "sourcesJar")
+	from layout.buildDirectory.dir("libs")
+	into 'jar'
+}
+
+task copyJavadoc(type: Copy) {
+	dependsOn("javadoc")
+	from layout.buildDirectory.dir("docs")
+	into "docs"
+}
+
+spotless {
+	format 'misc', {
+		target '*.gradle', '*.md', '.gitignore'
+		trimTrailingWhitespace()
+		indentWithTabs()
+		endWithNewline()
+	}
+	java {
+		toggleOffOn()
+		importOrder('java', 'javax', 'com', 'org')
+		//googleJavaFormat('1.11.0').aosp() // unfortunately you cannot adjust line lengths for this. maybe wait until spotless issue #817 is fixed
+		licenseHeader '/* (C) Brady Russell $YEAR */'
+	}
+}
+
+task copyAntlrGeneratedFiles(type: Copy) {
+	dependsOn("generateGrammarSource")
+	from layout.buildDirectory.dir("generated-src/antlr/main")
+	into "src/com/bradyrussell/tsqlparser/generated"
+}
+compileJava.dependsOn('copyAntlrGeneratedFiles')
+sourcesJar.dependsOn('copyAntlrGeneratedFiles')
+spotlessJava.dependsOn('copyAntlrGeneratedFiles')
+
+task preCommit() {
+	dependsOn("clean", "generateGrammarSource", "copyAntlrGeneratedFiles", "test", "javadoc", "copyJavadoc")
+}
+
+
+
+// pre commit:
+//gradle clean spotlessApply test javadoc copyJavadoc
+
+// post commit (Jenkins):
+//gradle clean copyAntlrGeneratedFiles test javadoc jar javadocJar sourcesJar copyJar copyJavadoc copyDependencies publish
