@@ -53,7 +53,7 @@ public class TSqlDescriptionFromCommentsListener extends TSqlParserBaseListener 
             offset = 1;
         }
 
-        List<Token> comments = tokens.getHiddenTokensToRight(ctx.stop.getTokenIndex()+offset);
+        List<Token> comments = tokens.getHiddenTokensToRight(ctx.stop.getTokenIndex()+offset,1);
 
         if(comments == null) return;
 

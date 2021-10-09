@@ -4842,7 +4842,7 @@ public class TSqlLexer extends Lexer {
 		"\17\2\2\u2921\u06fc\3\2\2\2\u2922\u2923\t\20\2\2\u2923\u06fe\3\2\2\2 "+
 		"\2\u07da\u08ca\u139c\u13a2\u2846\u284f\u2851\u285f\u2868\u2872\u2874\u287c"+
 		"\u287e\u2884\u2888\u288c\u288e\u2892\u2898\u289a\u28a4\u28ab\u28af\u28b4"+
-		"\u2907\u290d\u2912\u291a\u291c\4\b\2\2\2\3\2";
+		"\u2907\u290d\u2912\u291a\u291c\4\2\4\2\2\3\2";
 	public static final String _serializedATN = Utils.join(
 		new String[] {
 			_serializedATNSegment0,

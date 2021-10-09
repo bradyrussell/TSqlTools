@@ -879,7 +879,7 @@ VARCHAR:                               'VARCHAR';
 NVARCHAR:                              'NVARCHAR';
 
 
-SPACE:              [ \t\r\n]+    -> skip;
+SPACE:              [ \t\r\n]+    -> channel(2);
 // https://docs.microsoft.com/en-us/sql/t-sql/language-elements/slash-star-comment-transact-sql
 COMMENT:            '/*' (COMMENT | .)*? '*/' -> channel(HIDDEN);
 LINE_COMMENT:       '--' ~[\r\n]* -> channel(HIDDEN);
